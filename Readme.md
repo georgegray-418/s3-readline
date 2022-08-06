@@ -4,7 +4,7 @@ S3 readline is a utility class that exposes an s3 object via an async generator 
 
 ## Usage
 
-Initialize the S3LineReader and call the `getLines` method go get an instance of AsyncGenerate that you can iterate with a `for await`. `getLines` will return the same Generator no mater how many times you call it, if you require a new instance of the Generator you will need to construct a new `S3LineReader`.
+Initialize the `S3LineReader` and call the `getLines` method to get an instance of `AsyncGenerator` that you can iterate with a `for await`. `getLines` will return the same `AsyncGenerator` no mater how many times you call it, if you require a new instance of the Generator you will need to construct a new `S3LineReader`.
 
 ### Simple Usage
 
