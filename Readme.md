@@ -12,10 +12,9 @@ Initialize the `S3LineReader` and call the `getLines` method to get an instance 
 // initialize the line reader with a bucket and object
 // By default, the file will be downloaded in 128 kib chunks
 const reader: S3LineReader = new S3LineReader('some-s3-bucket', 'hugefile.txt');
-const lines = reader.getLines();
 // Iterate our lines, new chunks will only be pulled when the existing chunk has been
 // fully processed (in out example, logged)
-for await (let line of lines) {
+for await (let line of reader.getLines()) {
   console.log(line);
 }
 ```
@@ -63,8 +62,7 @@ const reader: S3LineReader = new S3LineReader('some-s3-bucket', 'hugefile.txt', 
   lineDelimiter: 'spoons',
 });
 // for a file with the contents: 'abcspoons123spoons xyz spoons 456'
-const lines = reader.getLines();
-for await (let line of lines) console.log(line);
+for await (let line of reader.getLines()) console.log(line);
 // would log:
 // 'abc'
 // '123'
