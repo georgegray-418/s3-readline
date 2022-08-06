@@ -1,0 +1,29 @@
+{
+  "name": "s3-readline",
+  "version": "0.0.1",
+  "description": "Utility for reading from s3 objects one line at a time",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.142.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^28.1.6",
+    "jest": "^28.1.3",
+    "ts-jest": "^28.0.7",
+    "typescript": "^4.7.4"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "s3",
+    "readline",
+    "read",
+    "line",
+    "s3object",
+    "buffer",
+    "memory",
+    "aws"
+  ],
+  "author": "George Gray",
+  "license": "MIT"
+}
