@@ -1,6 +1,6 @@
 {
   "name": "s3-readline",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Utility for reading from s3 objects one line at a time",
   "author": "George Gray",
   "license": "MIT",
