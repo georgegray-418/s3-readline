@@ -8,7 +8,8 @@ export class S3LineReader {
   /**
    * Class to get data from an s3 object and yield it to a calling process in line chunks,
    * a line is currently denoted by a utf-8 '\n' character.
-   * This class will not load more than specified {@link bufferSize} into memory at any given point.
+   * This class will not load more than specified {@link bufferSize} or the longest line from
+   * the s3 file (whichever is greater) into memory at any given point.
    * @param bucket the s3 bucket to pull data form
    * @param key the key of the object to pull data form
    * @param s3Config an s3 config object, defaults to {}
@@ -37,7 +38,7 @@ export class S3LineReader {
    * @returns
    */
   public async *getLines(lineDelimiter: string = '\n') {
-    // Grab the filesize
+    // Grab the file size
     const headObject = await this.s3.headObject({
       Bucket: this.bucket,
       Key: this.key,
@@ -56,42 +57,30 @@ export class S3LineReader {
           Range: `bytes=${this.byteOffset}-${byteOffsetTop}`,
         }),
       );
-      // increment the byteOffset, GetObjectCommand's Range is inclusive, start at the byte after the previous range provided.
+
+      // increment the byteOffset
+      // GetObjectCommand's Range is inclusive, start at the byte after the previous range provided.
       this.byteOffset = byteOffsetTop + 1;
 
       // Nothing returned, we've hit the end of the file.
       if (!file.Body) break;
       let data = await this.readStream(file.Body as NodeJS.ReadableStream);
+
+      // Prepend any data from the previous chunk that was missing a newline.
+      data = this.partial + data;
+      this.partial = '';
+
       // While there is data in the last chunk from s3
       while (data.length) {
         let nextNewline = data.indexOf(lineDelimiter);
         // If we've not found a newline, we're at the end of a chunk,
         // save the partial line in a class member and fetch the next chunk
         if (nextNewline === -1) {
-          this.partial += data;
-          // check if a newline is present when any data left in the previous chunk is
-          // prepended to this chunk
-          if (this.partial.indexOf(lineDelimiter) !== -1) {
-            // if so, set this chunk to the combination of the partial and this chunk and
-            // restart processing of this chunk.
-            data = this.partial;
-            this.partial = '';
-            continue;
-          }
-          // If not, there are no more lines to process in this chunk.
+          this.partial = data;
           break;
         }
-
         // a newline was found, grab the current line.
-        let nextLine = data.substring(0, nextNewline);
-        if (this.partial) {
-          // If something was in the partial member, we had data left over form the previous
-          // chunk, append this to it clear the partial data.
-          nextLine = this.partial + nextLine;
-          this.partial = '';
-        }
-        // Return line.
-        yield nextLine;
+        yield data.substring(0, nextNewline);
         // Remove the returned line form the current chunk.
         data = data.substring(nextNewline + lineDelimiter.length);
       }
