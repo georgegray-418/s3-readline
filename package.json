@@ -1,12 +1,13 @@
 {
   "name": "s3-readline",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Utility for reading from s3 objects one line at a time",
   "author": "George Gray",
   "license": "MIT",
   "scripts": {
     "test": "jest"
   },
+  "main": "build/s3-line-reader.js",
   "files" : ["build"],
   "homepage" : "https://github.com/georgegray-418/s3-readline#readme",
   "repository": {

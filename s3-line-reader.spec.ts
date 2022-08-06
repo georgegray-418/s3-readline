@@ -28,7 +28,7 @@ This is the second line`;
       expect(line.value).toEqual('This is the second line');
     });
     it('should return a single line if the source object only contains a single line and the buffer is smaller than the line', async () => {
-      const reader = new S3LineReader('some-bucket', 'some-key', 8);
+      const reader = new S3LineReader('some-bucket', 'some-key', {}, 8);
       const lines = reader.getLines();
       let line = await lines.next();
       expect(line.done).toBe(false);
@@ -54,7 +54,7 @@ This is the second line`;
       expect(line.done).toBe(true);
     });
     it('should return a single line if the source object only contains a single line. and the buffer is smaller than the line', async () => {
-      const reader = new S3LineReader('some-bucket', 'some-key', 8);
+      const reader = new S3LineReader('some-bucket', 'some-key', {}, 8);
       const lines = reader.getLines();
       const line = await lines.next();
       expect(line.value).toEqual(lineString);
@@ -76,7 +76,7 @@ short line
     });
 
     it('should return all the lines in order including empty lines', async () => {
-      const reader = new S3LineReader('some-bucket', 'some-key', 8);
+      const reader = new S3LineReader('some-bucket', 'some-key', {}, 8);
       const lines = reader.getLines();
       let line = await lines.next();
       expect(line.value).toEqual('');
@@ -118,7 +118,7 @@ short line
       expect(line.value).toEqual('This is the second line');
     });
     it('should correctly return lines when newline characters falls over two requests', async () => {
-      const reader = new S3LineReader('some-bucket', 'some-key', 22);
+      const reader = new S3LineReader('some-bucket', 'some-key', {}, 22);
       const lines = reader.getLines('\r\n');
       let line = await lines.next();
       expect(line.value).toEqual('This is the first line');

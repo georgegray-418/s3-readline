@@ -15,7 +15,7 @@ export class S3LineReader {
    * @param s3Config an s3 config object, defaults to {}
    * @param bufferSize the number of bytes to pull form s3 in each request, defaults to 128 kib
    */
-  constructor(private bucket: string, private key: string, private readonly bufferSize = 1024 * 128, s3Config: S3ClientConfig = {}) {
+  constructor(private bucket: string, private key: string, s3Config: S3ClientConfig = {}, private readonly bufferSize = 1024 * 128) {
     this.s3 = new S3(s3Config);
   }
 
