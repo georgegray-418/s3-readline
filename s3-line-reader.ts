@@ -1,10 +1,12 @@
-import { GetObjectCommand, GetObjectCommandInput, GetObjectCommandOutput, S3, S3ClientConfig } from '@aws-sdk/client-s3';
+import { GetObjectCommand, S3, S3ClientConfig } from '@aws-sdk/client-s3';
 export class S3LineReader {
   private byteOffset = 0;
   private partial: string = '';
   private readonly s3: S3;
   private size = 0;
-
+  private generator: AsyncGenerator<string, string, unknown> | undefined;
+  private lineDelimiter: string = '\n';
+  private readonly bufferSize = 1024 * 128;
   /**
    * Class to get data from an s3 object and yield it to a calling process line by line,
    * the line delimiter can be specified in calls to {@link getLines} and defaults to '\n'
@@ -12,11 +14,15 @@ export class S3LineReader {
    * the s3 file (whichever is greater) into memory at any given point.
    * @param bucket the s3 bucket to pull data form
    * @param key the key of the object to pull data form
-   * @param s3Config an s3 config object, defaults to {}
-   * @param bufferSize the number of bytes to pull form s3 in each request, defaults to 128 kib
+   * @param config an object containing
+   *  * s3Config an s3 config object, defaults to {}
+   *  * bufferSize the number of bytes to pull form s3 in each request, defaults to 128 kib
+   *  * lineDelimiter the charchter sequence indicating a newline in the file, defaults to '\n'
    */
-  constructor(private bucket: string, private key: string, s3Config: S3ClientConfig = {}, private readonly bufferSize = 1024 * 128) {
-    this.s3 = new S3(s3Config);
+  constructor(private bucket: string, private key: string, config: { s3Config?: S3ClientConfig; bufferSize?: number; lineDelimiter?: string } = {}) {
+    this.s3 = new S3(config.s3Config || {});
+    this.lineDelimiter = config.lineDelimiter || this.lineDelimiter;
+    this.bufferSize = config.bufferSize || this.bufferSize;
   }
 
   /**
@@ -32,10 +38,14 @@ export class S3LineReader {
    * }
    *
    * ```
-   * @param lineDelimiter character or string that represents a newline in the file.
    * @returns
    */
-  public async *getLines(lineDelimiter: string = '\n') {
+  public getLines(): AsyncGenerator<string, string, unknown> {
+    if (!this.generator) this.generator = this.getLinesGenerator();
+    return this.generator;
+  }
+
+  private async *getLinesGenerator() {
     // Grab the file size
     const headObject = await this.s3.headObject({
       Bucket: this.bucket,
@@ -70,7 +80,7 @@ export class S3LineReader {
 
       // While there is data in the last chunk from s3
       while (data.length) {
-        let nextNewline = data.indexOf(lineDelimiter);
+        let nextNewline = data.indexOf(this.lineDelimiter);
         // If we've not found a newline, we're at the end of a chunk,
         // save the partial line in a class member and fetch the next chunk
         if (nextNewline === -1) {
@@ -80,7 +90,7 @@ export class S3LineReader {
         // a newline was found, grab the current line.
         yield data.substring(0, nextNewline);
         // Remove the returned line form the current chunk.
-        data = data.substring(nextNewline + lineDelimiter.length);
+        data = data.substring(nextNewline + this.lineDelimiter.length);
       }
     }
     // anything left in the partial buffer is the last line of the file.

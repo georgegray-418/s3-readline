@@ -1,4 +1,4 @@
-import { GetObjectCommand, HeadObjectCommandOutput, S3 } from '@aws-sdk/client-s3';
+import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import { S3LineReader } from './s3-line-reader';
 
@@ -27,8 +27,21 @@ This is the second line`;
       expect(line.done).toBe(true);
       expect(line.value).toEqual('This is the second line');
     });
+    it('should only create a single AsyncGenerator', async () => {
+      const reader = new S3LineReader('some-bucket', 'some-key');
+      const lines = reader.getLines();
+      let line = await lines.next();
+      expect(line.done).toBe(false);
+      expect(line.value).toEqual('This is the first line');
+      line = await lines.next();
+      expect(line.done).toBe(true);
+      expect(line.value).toEqual('This is the second line');
+      let lines2 = reader.getLines();
+      line = await lines2.next();
+      expect(line.done).toBe(true);
+    });
     it('should return a single line if the source object only contains a single line and the buffer is smaller than the line', async () => {
-      const reader = new S3LineReader('some-bucket', 'some-key', {}, 8);
+      const reader = new S3LineReader('some-bucket', 'some-key', { bufferSize: 8 });
       const lines = reader.getLines();
       let line = await lines.next();
       expect(line.done).toBe(false);
@@ -54,7 +67,7 @@ This is the second line`;
       expect(line.done).toBe(true);
     });
     it('should return a single line if the source object only contains a single line. and the buffer is smaller than the line', async () => {
-      const reader = new S3LineReader('some-bucket', 'some-key', {}, 8);
+      const reader = new S3LineReader('some-bucket', 'some-key', { bufferSize: 8 });
       const lines = reader.getLines();
       const line = await lines.next();
       expect(line.value).toEqual(lineString);
@@ -76,7 +89,7 @@ short line
     });
 
     it('should return all the lines in order including empty lines', async () => {
-      const reader = new S3LineReader('some-bucket', 'some-key', {}, 8);
+      const reader = new S3LineReader('some-bucket', 'some-key', { bufferSize: 8 });
       const lines = reader.getLines();
       let line = await lines.next();
       expect(line.value).toEqual('');
@@ -108,8 +121,8 @@ short line
       S3.prototype.send = getObjectMock(dataBuffer);
     });
     it('should correctly return the lines if the delimiter is set', async () => {
-      const reader = new S3LineReader('some-bucket', 'some-key');
-      const lines = reader.getLines('\r\n');
+      const reader = new S3LineReader('some-bucket', 'some-key', { lineDelimiter: '\r\n' });
+      const lines = reader.getLines();
       let line = await lines.next();
       expect(line.done).toBe(false);
       expect(line.value).toEqual('This is the first line');
@@ -118,8 +131,8 @@ short line
       expect(line.value).toEqual('This is the second line');
     });
     it('should correctly return lines when newline characters falls over two requests', async () => {
-      const reader = new S3LineReader('some-bucket', 'some-key', {}, 22);
-      const lines = reader.getLines('\r\n');
+      const reader = new S3LineReader('some-bucket', 'some-key', { lineDelimiter: '\r\n', bufferSize: 22 });
+      const lines = reader.getLines();
       let line = await lines.next();
       expect(line.value).toEqual('This is the first line');
       expect(line.done).toBe(false);
