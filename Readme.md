@@ -14,7 +14,7 @@ const lines = reader.getLines();
 // Iterate our lines, new chunks will only be pulled when the existing chunk has been
 // fully processed (in out example, logged)
 for await (let line of lines) {
-  console.log(value);
+  console.log(line);
 }
 ```
 

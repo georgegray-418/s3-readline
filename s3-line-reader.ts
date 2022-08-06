@@ -25,13 +25,11 @@ export class S3LineReader {
    *
    * ```typescript
    * const reader = new S3LineReader('my-bucket','my-object');
-   * const lineIterator = reader.getLines();
+   * const lines = reader.getLines();
    *
-   * let line:IteratorResult<string,void>;
-   * do {
-   *  line = await lineIterator.next();
-   *  // do stuff with line.value
-   * } while (!line.done)
+   * for await (let line of lines) {
+   *  console.log(line);
+   * }
    *
    * ```
    * @param lineDelimiter character or string that represents a newline in the file.
