@@ -6,8 +6,8 @@ export class S3LineReader {
   private size = 0;
 
   /**
-   * Class to get data from an s3 object and yield it to a calling process in line chunks,
-   * a line is currently denoted by a utf-8 '\n' character.
+   * Class to get data from an s3 object and yield it to a calling process line by line,
+   * the line delimiter can be specified in calls to {@link getLines} and defaults to '\n'
    * This class will not load more than specified {@link bufferSize} or the longest line from
    * the s3 file (whichever is greater) into memory at any given point.
    * @param bucket the s3 bucket to pull data form

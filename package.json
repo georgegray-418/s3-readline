@@ -7,6 +7,7 @@
   "scripts": {
     "test": "jest"
   },
+  "homepage" : "https://github.com/georgegray-418/s3-readline#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/georgegray-418/s3-readline.git"
